@@ -12,7 +12,11 @@ const PORT = process.env.PORT || 3001
 const DATA_FILE = path.join(__dirname, 'data', 'workouts.json')
 
 // Middleware
-app.use(cors())
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}))
 app.use(express.json())
 
 // Ensure data directory exists
