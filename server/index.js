@@ -152,6 +152,19 @@ app.delete('/api/workouts/:id', async (req, res) => {
   }
 })
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Workout Tracker API is running',
+    endpoints: {
+      health: '/api/health',
+      workouts: '/api/workouts',
+      workoutsByUser: '/api/workouts/:userId'
+    }
+  })
+})
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Workout Tracker API is running' })
@@ -160,19 +173,47 @@ app.get('/api/health', (req, res) => {
 // Start server
 async function startServer() {
   try {
-    await ensureDataDir()
-    console.log('Data directory ensured')
+    console.log('Starting server...')
+    console.log('PORT:', PORT)
+    console.log('NODE_ENV:', process.env.NODE_ENV)
     
-    app.listen(PORT, '0.0.0.0', () => {
+    await ensureDataDir()
+    console.log('✅ Data directory ensured')
+    console.log('📁 Data file:', DATA_FILE)
+    
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log('✅ Server started successfully!')
       console.log(`🚀 Server running on port ${PORT}`)
       console.log(`📁 Data stored in: ${DATA_FILE}`)
       console.log(`🌐 Server accessible at http://0.0.0.0:${PORT}`)
+      console.log(`🔗 Health check: http://0.0.0.0:${PORT}/api/health`)
     })
+    
+    server.on('error', (error) => {
+      console.error('❌ Server error:', error)
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use`)
+      }
+      process.exit(1)
+    })
+    
   } catch (error) {
-    console.error('Failed to start server:', error)
+    console.error('❌ Failed to start server:', error)
+    console.error('Error stack:', error.stack)
     process.exit(1)
   }
 }
+
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error)
+  process.exit(1)
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason)
+  process.exit(1)
+})
 
 startServer()
 
