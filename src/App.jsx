@@ -50,7 +50,8 @@ function App() {
       setEditingWorkout(null)
     } catch (error) {
       console.error('Error saving workout:', error)
-      alert('Error saving workout. Please try again.')
+      const errorMessage = error.message || 'Unknown error occurred'
+      alert(`Error saving workout: ${errorMessage}\n\nCheck browser console (F12) for more details.`)
     }
   }
 

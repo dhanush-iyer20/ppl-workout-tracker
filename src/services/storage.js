@@ -41,7 +41,8 @@ export const storageService = {
       }
       
       console.log('Saving workout to:', `${API_URL}/workouts`)
-      console.log('Payload:', payload)
+      console.log('API_URL:', API_URL)
+      console.log('Payload:', JSON.stringify(payload, null, 2))
       
       const response = await fetch(`${API_URL}/workouts`, {
         method: 'POST',
@@ -51,17 +52,29 @@ export const storageService = {
         body: JSON.stringify(payload),
       })
       
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+      
       if (!response.ok) {
         const errorText = await response.text()
         console.error('Server error response:', errorText)
-        throw new Error(`Failed to save workout: ${response.status} ${errorText}`)
+        console.error('Response status:', response.status)
+        console.error('Response headers:', [...response.headers.entries()])
+        throw new Error(`Failed to save workout: ${response.status} - ${errorText}`)
       }
       
       const result = await response.json()
-      console.log('Workout saved successfully:', result)
+      console.log('✅ Workout saved successfully:', result)
       return result
     } catch (error) {
-      console.error('Error saving workout:', error)
+      console.error('❌ Error saving workout:', error)
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+      
+      // More user-friendly error message
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        throw new Error('Cannot connect to server. Please check if the API is running.')
+      }
       throw error
     }
   },
