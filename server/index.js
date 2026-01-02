@@ -159,15 +159,20 @@ app.get('/api/health', (req, res) => {
 
 // Start server
 async function startServer() {
-  await ensureDataDir()
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server running on port ${PORT}`)
-    console.log(`📁 Data stored in: ${DATA_FILE}`)
-  })
+  try {
+    await ensureDataDir()
+    console.log('Data directory ensured')
+    
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server running on port ${PORT}`)
+      console.log(`📁 Data stored in: ${DATA_FILE}`)
+      console.log(`🌐 Server accessible at http://0.0.0.0:${PORT}`)
+    })
+  } catch (error) {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  }
 }
 
-startServer().catch(error => {
-  console.error('Failed to start server:', error)
-  process.exit(1)
-})
+startServer()
 
