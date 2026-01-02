@@ -82,6 +82,12 @@ app.get('/api/workouts/:userId', async (req, res) => {
 app.post('/api/workouts', async (req, res) => {
   try {
     const workout = req.body
+    console.log('Received workout:', workout)
+    
+    if (!workout.date || !workout.type || !workout.exercises) {
+      return res.status(400).json({ error: 'Missing required fields: date, type, or exercises' })
+    }
+    
     const workouts = await readWorkouts()
     
     const newWorkout = {
@@ -94,11 +100,16 @@ app.post('/api/workouts', async (req, res) => {
     }
     
     workouts.push(newWorkout)
-    await writeWorkouts(workouts)
+    const success = await writeWorkouts(workouts)
+    
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to save workout to file' })
+    }
     
     res.status(201).json(newWorkout)
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create workout' })
+    console.error('Error creating workout:', error)
+    res.status(500).json({ error: 'Failed to create workout', details: error.message })
   }
 })
 
@@ -149,11 +160,14 @@ app.get('/api/health', (req, res) => {
 // Start server
 async function startServer() {
   await ensureDataDir()
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`)
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`)
     console.log(`📁 Data stored in: ${DATA_FILE}`)
   })
 }
 
-startServer()
+startServer().catch(error => {
+  console.error('Failed to start server:', error)
+  process.exit(1)
+})
 

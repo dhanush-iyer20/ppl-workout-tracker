@@ -35,19 +35,31 @@ export const storageService = {
   async saveWorkout(workout) {
     try {
       const userId = getUserId()
+      const payload = {
+        ...workout,
+        user_id: userId
+      }
+      
+      console.log('Saving workout to:', `${API_URL}/workouts`)
+      console.log('Payload:', payload)
+      
       const response = await fetch(`${API_URL}/workouts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...workout,
-          user_id: userId
-        }),
+        body: JSON.stringify(payload),
       })
       
-      if (!response.ok) throw new Error('Failed to save workout')
-      return await response.json()
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Server error response:', errorText)
+        throw new Error(`Failed to save workout: ${response.status} ${errorText}`)
+      }
+      
+      const result = await response.json()
+      console.log('Workout saved successfully:', result)
+      return result
     } catch (error) {
       console.error('Error saving workout:', error)
       throw error
