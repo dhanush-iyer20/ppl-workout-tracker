@@ -1,5 +1,5 @@
 // API endpoint - change this to your deployed server URL
-const API_URL = import.meta.env.VITE_API_URL || 'https://ppl-workout-tracker-production.up.railway.app/api'
+const API_URL = import.meta.env.VITE_API_URL || 'https://web-production-b2c90.up.railway.app/api'
 
 // Generate a simple user ID (in production, use authentication)
 const getUserId = () => {
