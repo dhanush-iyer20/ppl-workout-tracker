@@ -26,17 +26,31 @@ export const storageService = {
   async getWorkouts(forceRefresh = false) {
     try {
       // Return cached data if still valid and not forcing refresh
-      if (!forceRefresh && isCacheValid()) {
+      if (!forceRefresh && isCacheValid() && workoutsCache) {
         console.log('📦 Using cached workouts data')
         return workoutsCache
       }
 
       // Get all workouts (no user filtering for multi-device sync)
-      const response = await fetch(`${API_URL}/workouts`)
+      const response = await fetch(`${API_URL}/workouts`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch workouts')
+        throw new Error(`Failed to fetch workouts: ${response.status}`)
       }
+      
       const allWorkouts = await response.json()
+      
+      // Ensure we have an array
+      if (!Array.isArray(allWorkouts)) {
+        console.warn('API returned non-array data, using empty array')
+        return []
+      }
+      
       // Sort by date (newest first)
       const sortedWorkouts = allWorkouts.sort((a, b) => new Date(b.date) - new Date(a.date))
       
@@ -48,11 +62,12 @@ export const storageService = {
     } catch (error) {
       console.error('Error fetching workouts:', error)
       // Return cached data if available, even if expired, as fallback
-      if (workoutsCache) {
+      if (workoutsCache && Array.isArray(workoutsCache)) {
         console.log('⚠️ Server error, using cached data as fallback')
         return workoutsCache
       }
       // Fallback to empty array if server is down and no cache
+      console.log('⚠️ No cache available, returning empty array')
       return []
     }
   },
