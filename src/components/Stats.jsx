@@ -60,23 +60,64 @@ function Stats({ workouts }) {
     return weeks
   }, [monthlyWorkouts, selectedMonth, selectedYear])
 
-  // Daily workout count for the month
-  const dailyData = useMemo(() => {
-    const days = []
-    const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate()
+  // Personal Records - Best performance for each exercise
+  const personalRecords = useMemo(() => {
+    const prs = {}
     
-    for (let day = 1; day <= lastDay; day++) {
-      const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-      const dayWorkouts = monthlyWorkouts.filter(w => w.date === dateStr)
-      days.push({
-        day: day,
-        workouts: dayWorkouts.length,
-        date: dateStr
+    monthlyWorkouts.forEach(workout => {
+      workout.exercises.forEach(ex => {
+        const exerciseId = ex.id
+        const exerciseName = ex.name
+        const volume = ex.sets * ex.reps * ex.weight
+        const maxWeight = ex.weight
+        
+        if (!prs[exerciseId]) {
+          prs[exerciseId] = {
+            name: exerciseName,
+            maxWeight: 0,
+            maxVolume: 0,
+            bestWeightDate: '',
+            bestVolumeDate: '',
+            unit: ex.unit || 'kg/lbs'
+          }
+        }
+        
+        // Track best weight
+        if (maxWeight > prs[exerciseId].maxWeight) {
+          prs[exerciseId].maxWeight = maxWeight
+          prs[exerciseId].bestWeightDate = workout.date
+        }
+        
+        // Track best volume
+        if (volume > prs[exerciseId].maxVolume) {
+          prs[exerciseId].maxVolume = volume
+          prs[exerciseId].bestVolumeDate = workout.date
+        }
       })
-    }
+    })
     
-    return days
-  }, [monthlyWorkouts, selectedMonth, selectedYear])
+    return Object.values(prs).filter(pr => pr.maxWeight > 0 || pr.maxVolume > 0)
+  }, [monthlyWorkouts])
+
+  // Volume progression over time (last 12 workouts)
+  const volumeProgression = useMemo(() => {
+    const sortedWorkouts = [...workouts]
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(-12) // Last 12 workouts
+    
+    return sortedWorkouts.map(workout => {
+      const volume = workout.exercises.reduce((sum, ex) => {
+        return sum + (ex.sets * ex.reps * ex.weight)
+      }, 0)
+      
+      const date = new Date(workout.date)
+      return {
+        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        volume: volume,
+        type: workout.type
+      }
+    })
+  }, [workouts])
 
   // Pie chart data for workout types
   const pieData = [
@@ -207,23 +248,81 @@ function Stats({ workouts }) {
         </div>
       </div>
 
-      {/* Daily Workout Chart */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Workout Frequency</h3>
-        {dailyData.length > 0 ? (
+      {/* Volume Progression Chart */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-6 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Volume Progression (Last 12 Workouts)</h3>
+        {volumeProgression.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={dailyData}>
+            <LineChart data={volumeProgression}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
+              <XAxis dataKey="date" angle={-45} textAnchor="end" height={80} />
               <YAxis />
-              <Tooltip />
+              <Tooltip 
+                formatter={(value) => [`${value.toLocaleString()} kg/lbs`, 'Volume']}
+                labelFormatter={(label) => `Date: ${label}`}
+              />
               <Legend />
-              <Line type="monotone" dataKey="workouts" stroke="#ef4444" strokeWidth={2} name="Workouts" />
+              <Line 
+                type="monotone" 
+                dataKey="volume" 
+                stroke="#3b82f6" 
+                strokeWidth={3} 
+                name="Total Volume"
+                dot={{ fill: '#3b82f6', r: 4 }}
+                activeDot={{ r: 6 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         ) : (
           <div className="h-[300px] flex items-center justify-center text-gray-400">
-            No data for this month
+            Add workouts to see your progression
+          </div>
+        )}
+      </div>
+
+      {/* Personal Records */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">🏆 Personal Records This Month</h3>
+        {personalRecords.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+            {personalRecords.map((pr, index) => (
+              <div 
+                key={index}
+                className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
+              >
+                <div className="font-semibold text-gray-900 mb-2">{pr.name}</div>
+                {pr.maxWeight > 0 && (
+                  <div className="mb-2">
+                    <div className="text-xs text-gray-600 mb-1">Max Weight</div>
+                    <div className="text-lg font-bold text-blue-600">
+                      {pr.maxWeight} {pr.unit === 'Body Weight' ? 'BW' : pr.unit}
+                    </div>
+                    {pr.bestWeightDate && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {new Date(pr.bestWeightDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {pr.maxVolume > 0 && (
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Best Volume</div>
+                    <div className="text-lg font-bold text-purple-600">
+                      {pr.maxVolume.toLocaleString()} {pr.unit === 'Body Weight' ? 'BW' : pr.unit}
+                    </div>
+                    {pr.bestVolumeDate && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {new Date(pr.bestVolumeDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="h-32 flex items-center justify-center text-gray-400">
+            Complete workouts to see your personal records
           </div>
         )}
       </div>
