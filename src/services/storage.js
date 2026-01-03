@@ -1,6 +1,11 @@
 // API endpoint - change this to your deployed server URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://ppl-workout-tracker-groe.onrender.com/api'
 
+// Cache to reduce API calls
+const CACHE_DURATION = 30000 // 30 seconds cache
+let workoutsCache = null
+let cacheTimestamp = null
+
 // Generate a simple user ID (in production, use authentication)
 const getUserId = () => {
   let userId = localStorage.getItem('userId')
@@ -11,9 +16,21 @@ const getUserId = () => {
   return userId
 }
 
+// Check if cache is still valid
+const isCacheValid = () => {
+  if (!workoutsCache || !cacheTimestamp) return false
+  return Date.now() - cacheTimestamp < CACHE_DURATION
+}
+
 export const storageService = {
-  async getWorkouts() {
+  async getWorkouts(forceRefresh = false) {
     try {
+      // Return cached data if still valid and not forcing refresh
+      if (!forceRefresh && isCacheValid()) {
+        console.log('📦 Using cached workouts data')
+        return workoutsCache
+      }
+
       // Get all workouts (no user filtering for multi-device sync)
       const response = await fetch(`${API_URL}/workouts`)
       if (!response.ok) {
@@ -21,10 +38,21 @@ export const storageService = {
       }
       const allWorkouts = await response.json()
       // Sort by date (newest first)
-      return allWorkouts.sort((a, b) => new Date(b.date) - new Date(a.date))
+      const sortedWorkouts = allWorkouts.sort((a, b) => new Date(b.date) - new Date(a.date))
+      
+      // Update cache
+      workoutsCache = sortedWorkouts
+      cacheTimestamp = Date.now()
+      
+      return sortedWorkouts
     } catch (error) {
       console.error('Error fetching workouts:', error)
-      // Fallback to empty array if server is down
+      // Return cached data if available, even if expired, as fallback
+      if (workoutsCache) {
+        console.log('⚠️ Server error, using cached data as fallback')
+        return workoutsCache
+      }
+      // Fallback to empty array if server is down and no cache
       return []
     }
   },
@@ -62,6 +90,11 @@ export const storageService = {
       
       const result = await response.json()
       console.log('✅ Workout saved successfully:', result)
+      
+      // Invalidate cache so next fetch gets fresh data
+      workoutsCache = null
+      cacheTimestamp = null
+      
       return result
     } catch (error) {
       console.error('❌ Error saving workout:', error)
@@ -87,7 +120,13 @@ export const storageService = {
       })
       
       if (!response.ok) throw new Error('Failed to update workout')
-      return await response.json()
+      const result = await response.json()
+      
+      // Invalidate cache
+      workoutsCache = null
+      cacheTimestamp = null
+      
+      return result
     } catch (error) {
       console.error('Error updating workout:', error)
       throw error
@@ -101,7 +140,13 @@ export const storageService = {
       })
       
       if (!response.ok) throw new Error('Failed to delete workout')
-      return await response.json()
+      const result = await response.json()
+      
+      // Invalidate cache
+      workoutsCache = null
+      cacheTimestamp = null
+      
+      return result
     } catch (error) {
       console.error('Error deleting workout:', error)
       throw error
