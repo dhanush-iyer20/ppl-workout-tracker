@@ -20,14 +20,11 @@ function App() {
     try {
       setLoading(true)
       const data = await storageService.getWorkouts()
-      // Ensure data is an array
-      setWorkouts(Array.isArray(data) ? data : [])
+      setWorkouts(data)
     } catch (error) {
       console.error('Error loading workouts:', error)
-      // Set empty array on error so app can still render
       setWorkouts([])
     } finally {
-      // Always set loading to false, even if there's an error
       setLoading(false)
     }
   }
