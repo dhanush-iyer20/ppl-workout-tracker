@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { playClickSound } from '../sounds'
 
 function Calendar({ onDateSelect, workouts }) {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -25,27 +26,31 @@ function Calendar({ onDateSelect, workouts }) {
   
   const getWorkoutTypeColor = (type) => {
     const colors = {
-      push: 'bg-red-500',
-      pull: 'bg-blue-500',
-      legs: 'bg-green-500'
+      push: '#ff0000',
+      pull: '#0000ff',
+      legs: '#00ff00'
     }
-    return colors[type] || 'bg-gray-400'
+    return colors[type] || '#808080'
   }
   
   const handleDateClick = (day) => {
+    playClickSound()
     const selectedDate = new Date(year, month, day)
     onDateSelect(selectedDate)
   }
   
   const goToPreviousMonth = () => {
+    playClickSound()
     setCurrentDate(new Date(year, month - 1, 1))
   }
   
   const goToNextMonth = () => {
+    playClickSound()
     setCurrentDate(new Date(year, month + 1, 1))
   }
   
   const goToToday = () => {
+    playClickSound()
     setCurrentDate(new Date())
   }
   
@@ -64,7 +69,7 @@ function Calendar({ onDateSelect, workouts }) {
     // Empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(
-        <div key={`empty-${i}`} className="aspect-square"></div>
+        <div key={`empty-${i}`} style={{ aspectRatio: '1', minHeight: '40px' }}></div>
       )
     }
     
@@ -72,19 +77,40 @@ function Calendar({ onDateSelect, workouts }) {
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day)
       const workout = getWorkoutForDate(date)
-      const todayClass = isToday(day) ? 'ring-2 ring-blue-500' : ''
+      const todayStyle = isToday(day) 
+        ? { border: '2px solid #000080', background: '#ffff00' }
+        : {}
       
       days.push(
         <button
           key={day}
           onClick={() => handleDateClick(day)}
-          className={`aspect-square p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 flex flex-col items-center justify-center relative ${todayClass}`}
+          className="windows-button"
+          style={{
+            aspectRatio: '1',
+            minHeight: '40px',
+            minWidth: '40px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            ...todayStyle
+          }}
         >
-          <span className={`text-sm font-medium ${isToday(day) ? 'text-blue-600' : 'text-gray-700'}`}>
+          <span style={{ fontSize: '11px', color: '#000000', fontWeight: isToday(day) ? 'bold' : 'normal' }}>
             {day}
           </span>
           {workout && (
-            <div className={`w-2 h-2 rounded-full ${getWorkoutTypeColor(workout.type)} mt-1`}></div>
+            <div 
+              style={{
+                width: '8px',
+                height: '8px',
+                backgroundColor: getWorkoutTypeColor(workout.type),
+                marginTop: '2px',
+                border: '1px solid #000000'
+              }}
+            ></div>
           )}
         </button>
       )
@@ -94,61 +120,76 @@ function Calendar({ onDateSelect, workouts }) {
   }
   
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100/50 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">
-          {monthNames[month]} {year}
-        </h2>
-        <div className="flex gap-2">
-          <button
-            onClick={goToPreviousMonth}
-            className="px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button
-            onClick={goToToday}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
-          >
-            Today
-          </button>
-          <button
-            onClick={goToNextMonth}
-            className="px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+    <div className="windows-window">
+      <div className="windows-titlebar">
+        <span>📅 Calendar</span>
+        <span style={{ fontSize: '10px' }}>{monthNames[month]} {year}</span>
       </div>
-      
-      <div className="grid grid-cols-7 gap-2 mb-2">
-        {dayNames.map(day => (
-          <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
-            {day}
+      <div style={{ padding: '8px', background: '#c0c0c0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000' }}>
+            {monthNames[month]} {year}
           </div>
-        ))}
-      </div>
-      
-      <div className="grid grid-cols-7 gap-2">
-        {renderCalendarDays()}
-      </div>
-      
-      <div className="mt-6 flex items-center justify-center gap-4 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <span className="text-gray-600">Push</span>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button
+              onClick={goToPreviousMonth}
+              className="windows-button"
+              style={{ minWidth: '30px', padding: '2px' }}
+            >
+              ◀
+            </button>
+            <button
+              onClick={goToToday}
+              className="windows-button windows-button-primary"
+              style={{ fontSize: '10px' }}
+            >
+              Today
+            </button>
+            <button
+              onClick={goToNextMonth}
+              className="windows-button"
+              style={{ minWidth: '30px', padding: '2px' }}
+            >
+              ▶
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-          <span className="text-gray-600">Pull</span>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '4px' }}>
+          {dayNames.map(day => (
+            <div 
+              key={day} 
+              style={{ 
+                textAlign: 'center', 
+                fontSize: '10px', 
+                fontWeight: 'bold', 
+                color: '#000000',
+                padding: '4px',
+                background: '#c0c0c0'
+              }}
+            >
+              {day}
+            </div>
+          ))}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          <span className="text-gray-600">Legs</span>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
+          {renderCalendarDays()}
+        </div>
+        
+        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ width: '12px', height: '12px', backgroundColor: '#ff0000', border: '1px solid #000000' }}></div>
+            <span style={{ color: '#000000' }}>Push</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ width: '12px', height: '12px', backgroundColor: '#0000ff', border: '1px solid #000000' }}></div>
+            <span style={{ color: '#000000' }}>Pull</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ width: '12px', height: '12px', backgroundColor: '#00ff00', border: '1px solid #000000' }}></div>
+            <span style={{ color: '#000000' }}>Legs</span>
+          </div>
         </div>
       </div>
     </div>
@@ -156,4 +197,3 @@ function Calendar({ onDateSelect, workouts }) {
 }
 
 export default Calendar
-

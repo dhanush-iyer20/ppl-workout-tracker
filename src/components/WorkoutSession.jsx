@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { exercises } from '../data/exercises'
+import { playClickSound, playErrorSound } from '../sounds'
 
 function WorkoutSession({ selectedDate, onSave, onCancel, existingWorkout }) {
   const [workoutType, setWorkoutType] = useState(existingWorkout?.type || null)
@@ -21,7 +22,6 @@ function WorkoutSession({ selectedDate, onSave, onCancel, existingWorkout }) {
   }, [existingWorkout])
 
   useEffect(() => {
-    // Set default placeholders when workout type is selected (for new workouts only)
     if (workoutType && !existingWorkout) {
       const defaultData = {}
       exercises[workoutType]?.forEach(ex => {
@@ -46,6 +46,7 @@ function WorkoutSession({ selectedDate, onSave, onCancel, existingWorkout }) {
   }
   
   const handleSave = () => {
+    playClickSound()
     const workoutExercises = exercises[workoutType]
       .map(ex => ({
         id: ex.id,
@@ -58,6 +59,7 @@ function WorkoutSession({ selectedDate, onSave, onCancel, existingWorkout }) {
       .filter(ex => ex.sets > 0 || ex.reps > 0 || ex.weight > 0)
     
     if (workoutExercises.length === 0) {
+      playErrorSound()
       alert('Please enter at least one exercise with sets, reps, or weight')
       return
     }
@@ -73,170 +75,182 @@ function WorkoutSession({ selectedDate, onSave, onCancel, existingWorkout }) {
   
   if (!workoutType) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100/50 p-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-          Select Workout Type
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Date: {selectedDate.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}
-        </p>
-        <div className="grid md:grid-cols-3 gap-4">
+      <div className="windows-window">
+        <div className="windows-titlebar">
+          <span>Select Workout Type</span>
+        </div>
+        <div style={{ padding: '12px', background: '#c0c0c0' }}>
+          <div style={{ fontSize: '11px', color: '#000000', marginBottom: '12px' }}>
+            Date: {selectedDate.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
+            <button
+              onClick={() => { playClickSound(); setWorkoutType('push') }}
+              className="windows-button"
+              style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
+              <div style={{ fontSize: '24px', marginBottom: '4px' }}>💪</div>
+              <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000' }}>Push</div>
+              <div style={{ fontSize: '10px', color: '#000000', marginTop: '2px' }}>
+                {exercises.push.length} exercises
+              </div>
+            </button>
+            <button
+              onClick={() => { playClickSound(); setWorkoutType('pull') }}
+              className="windows-button"
+              style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
+              <div style={{ fontSize: '24px', marginBottom: '4px' }}>🏋️</div>
+              <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000' }}>Pull</div>
+              <div style={{ fontSize: '10px', color: '#000000', marginTop: '2px' }}>
+                {exercises.pull.length} exercises
+              </div>
+            </button>
+            <button
+              onClick={() => { playClickSound(); setWorkoutType('legs') }}
+              className="windows-button"
+              style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
+              <div style={{ fontSize: '24px', marginBottom: '4px' }}>🦵</div>
+              <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000' }}>Legs</div>
+              <div style={{ fontSize: '10px', color: '#000000', marginTop: '2px' }}>
+                {exercises.legs.length} exercises
+              </div>
+            </button>
+          </div>
           <button
-            onClick={() => setWorkoutType('push')}
-            className="p-6 bg-red-50 hover:bg-red-100 border-2 border-red-200 rounded-2xl transition-all duration-200 hover:scale-105"
+            onClick={() => { playClickSound(); onCancel() }}
+            className="windows-button"
+            style={{ width: '100%' }}
           >
-            <div className="text-4xl mb-2">💪</div>
-            <div className="text-xl font-semibold text-red-700">Push</div>
-            <div className="text-sm text-red-600 mt-1">
-              {exercises.push.length} exercises
-            </div>
-          </button>
-          <button
-            onClick={() => setWorkoutType('pull')}
-            className="p-6 bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 rounded-2xl transition-all duration-200 hover:scale-105"
-          >
-            <div className="text-4xl mb-2">🏋️</div>
-            <div className="text-xl font-semibold text-blue-700">Pull</div>
-            <div className="text-sm text-blue-600 mt-1">
-              {exercises.pull.length} exercises
-            </div>
-          </button>
-          <button
-            onClick={() => setWorkoutType('legs')}
-            className="p-6 bg-green-50 hover:bg-green-100 border-2 border-green-200 rounded-2xl transition-all duration-200 hover:scale-105"
-          >
-            <div className="text-4xl mb-2">🦵</div>
-            <div className="text-xl font-semibold text-green-700">Legs</div>
-            <div className="text-sm text-green-600 mt-1">
-              {exercises.legs.length} exercises
-            </div>
+            Cancel
           </button>
         </div>
-        <button
-          onClick={onCancel}
-          className="mt-6 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-medium transition-colors"
-        >
-          Cancel
-        </button>
       </div>
     )
   }
   
   const workoutExercises = exercises[workoutType]
   const typeColors = {
-    push: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
-    pull: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
-    legs: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' }
+    push: { bg: '#ffcccc', border: '#ff0000', text: '#000000' },
+    pull: { bg: '#ccccff', border: '#0000ff', text: '#000000' },
+    legs: { bg: '#ccffcc', border: '#00ff00', text: '#000000' }
   }
   const colors = typeColors[workoutType]
   
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100/50 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900 capitalize">
-            {workoutType} Workout
-          </h2>
-          <p className="text-gray-600 mt-1">
-            {selectedDate.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </p>
+    <div className="windows-window">
+      <div className="windows-titlebar">
+        <span>{workoutType.toUpperCase()} Workout</span>
+        <button
+          onClick={() => { playClickSound(); setWorkoutType(null) }}
+          className="windows-button"
+          style={{ fontSize: '10px', padding: '2px 8px', minHeight: '18px' }}
+        >
+          Change
+        </button>
+      </div>
+      <div style={{ padding: '8px', background: '#c0c0c0' }}>
+        <div style={{ fontSize: '10px', color: '#000000', marginBottom: '8px' }}>
+          {selectedDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
         </div>
-        <button
-          onClick={() => setWorkoutType(null)}
-          className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          Change Type
-        </button>
-      </div>
-      
-      <div className="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar mb-6">
-        {workoutExercises.map(exercise => (
-          <div
-            key={exercise.id}
-            className={`p-4 ${colors.bg} border ${colors.border} rounded-2xl`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="font-semibold text-gray-900">{exercise.name}</h3>
-                <p className="text-sm text-gray-600">
-                  PR: {exercise.pr} {exercise.unit}
-                </p>
+        
+        <div className="windows-window-inset" style={{ maxHeight: '400px', overflowY: 'auto', padding: '8px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {workoutExercises.map(exercise => (
+              <div
+                key={exercise.id}
+                className="windows-window"
+                style={{ padding: '8px', background: colors.bg }}
+              >
+                <div style={{ marginBottom: '6px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 'bold', color: colors.text, marginBottom: '2px' }}>
+                    {exercise.name}
+                  </div>
+                  <div style={{ fontSize: '9px', color: '#000000' }}>
+                    PR: {exercise.pr} {exercise.unit}
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '9px', color: '#000000', marginBottom: '2px' }}>
+                      Sets
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={exerciseData[exercise.id]?.sets || ''}
+                      onChange={(e) => handleExerciseChange(exercise.id, 'sets', e.target.value)}
+                      className="windows-input"
+                      placeholder="3"
+                      style={{ width: '100%', fontSize: '11px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '9px', color: '#000000', marginBottom: '2px' }}>
+                      Reps
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={exerciseData[exercise.id]?.reps || ''}
+                      onChange={(e) => handleExerciseChange(exercise.id, 'reps', e.target.value)}
+                      className="windows-input"
+                      placeholder="12"
+                      style={{ width: '100%', fontSize: '11px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '9px', color: '#000000', marginBottom: '2px' }}>
+                      Weight
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={exerciseData[exercise.id]?.weight || ''}
+                      onChange={(e) => handleExerciseChange(exercise.id, 'weight', e.target.value)}
+                      className="windows-input"
+                      placeholder="0"
+                      style={{ width: '100%', fontSize: '11px' }}
+                      disabled={exercise.unit === 'Body Weight'}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Sets
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={exerciseData[exercise.id]?.sets || ''}
-                  onChange={(e) => handleExerciseChange(exercise.id, 'sets', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50"
-                  placeholder="3"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Reps
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={exerciseData[exercise.id]?.reps || ''}
-                  onChange={(e) => handleExerciseChange(exercise.id, 'reps', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50"
-                  placeholder="12"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Weight ({exercise.unit === 'Body Weight' ? 'BW' : 'kg/lbs'})
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={exerciseData[exercise.id]?.weight || ''}
-                  onChange={(e) => handleExerciseChange(exercise.id, 'weight', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50"
-                  placeholder="3"
-                  disabled={exercise.unit === 'Body Weight'}
-                />
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
-      
-      <div className="flex gap-3">
-        <button
-          onClick={onCancel}
-          className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-medium transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          className={`flex-1 px-6 py-3 ${colors.bg} ${colors.text} border-2 ${colors.border} rounded-xl font-medium transition-all duration-200 hover:scale-105`}
-        >
-          Save Workout
-        </button>
+        </div>
+        
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <button
+            onClick={() => { playClickSound(); onCancel() }}
+            className="windows-button"
+            style={{ flex: 1 }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="windows-button windows-button-primary"
+            style={{ flex: 1 }}
+          >
+            Save Workout
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
 export default WorkoutSession
-

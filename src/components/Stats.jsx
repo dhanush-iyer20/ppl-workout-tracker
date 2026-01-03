@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { playClickSound } from '../sounds'
 
 function Stats({ workouts }) {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())
@@ -36,7 +37,7 @@ function Stats({ workouts }) {
     const firstDay = new Date(selectedYear, selectedMonth, 1)
     const lastDay = new Date(selectedYear, selectedMonth + 1, 0)
     const startDate = new Date(firstDay)
-    startDate.setDate(startDate.getDate() - startDate.getDay()) // Start from Sunday
+    startDate.setDate(startDate.getDate() - startDate.getDay())
     
     for (let d = new Date(startDate); d <= lastDay; d.setDate(d.getDate() + 7)) {
       const weekEnd = new Date(d)
@@ -60,7 +61,7 @@ function Stats({ workouts }) {
     return weeks
   }, [monthlyWorkouts, selectedMonth, selectedYear])
 
-  // Personal Records - Best performance for each exercise
+  // Personal Records
   const personalRecords = useMemo(() => {
     const prs = {}
     
@@ -82,13 +83,11 @@ function Stats({ workouts }) {
           }
         }
         
-        // Track best weight
         if (maxWeight > prs[exerciseId].maxWeight) {
           prs[exerciseId].maxWeight = maxWeight
           prs[exerciseId].bestWeightDate = workout.date
         }
         
-        // Track best volume
         if (volume > prs[exerciseId].maxVolume) {
           prs[exerciseId].maxVolume = volume
           prs[exerciseId].bestVolumeDate = workout.date
@@ -103,7 +102,7 @@ function Stats({ workouts }) {
   const volumeProgression = useMemo(() => {
     const sortedWorkouts = [...workouts]
       .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .slice(-12) // Last 12 workouts
+      .slice(-12)
     
     return sortedWorkouts.map(workout => {
       const volume = workout.exercises.reduce((sum, ex) => {
@@ -121,9 +120,9 @@ function Stats({ workouts }) {
 
   // Pie chart data for workout types
   const pieData = [
-    { name: 'Push', value: workoutsByType.push || 0, color: '#ef4444' },
-    { name: 'Pull', value: workoutsByType.pull || 0, color: '#3b82f6' },
-    { name: 'Legs', value: workoutsByType.legs || 0, color: '#22c55e' }
+    { name: 'Push', value: workoutsByType.push || 0, color: '#ff0000' },
+    { name: 'Pull', value: workoutsByType.pull || 0, color: '#0000ff' },
+    { name: 'Legs', value: workoutsByType.legs || 0, color: '#00ff00' }
   ].filter(item => item.value > 0)
 
   const monthNames = [
@@ -133,198 +132,241 @@ function Stats({ workouts }) {
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i)
 
-  const COLORS = ['#ef4444', '#3b82f6', '#22c55e']
+  const COLORS = ['#ff0000', '#0000ff', '#00ff00']
 
   return (
-    <div className="mb-8">
+    <div style={{ marginBottom: '8px' }}>
       {/* Month/Year Selector */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-4 mb-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-700">Month:</label>
+      <div className="windows-window" style={{ marginBottom: '8px' }}>
+        <div className="windows-titlebar">
+          <span>Statistics</span>
+        </div>
+        <div style={{ padding: '8px', background: '#c0c0c0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <label style={{ fontSize: '11px', color: '#000000' }}>Month:</label>
             <select
               value={selectedMonth}
-              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50"
+              onChange={(e) => { playClickSound(); setSelectedMonth(parseInt(e.target.value)) }}
+              className="windows-select"
+              style={{ fontSize: '11px' }}
             >
               {monthNames.map((month, idx) => (
                 <option key={idx} value={idx}>{month}</option>
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-700">Year:</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <label style={{ fontSize: '11px', color: '#000000' }}>Year:</label>
             <select
               value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50"
+              onChange={(e) => { playClickSound(); setSelectedYear(parseInt(e.target.value)) }}
+              className="windows-select"
+              style={{ fontSize: '11px' }}
             >
               {years.map(year => (
                 <option key={year} value={year}>{year}</option>
               ))}
             </select>
           </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-semibold text-gray-900">{monthlyWorkouts.length}</span> workouts this month
+          <div style={{ fontSize: '11px', color: '#000000' }}>
+            <span style={{ fontWeight: 'bold' }}>{monthlyWorkouts.length}</span> workouts this month
           </div>
         </div>
       </div>
 
       {/* Monthly Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-4 text-center">
-          <div className="text-3xl mb-2">💪</div>
-          <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent mb-1">
-            {monthlyWorkouts.length}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '8px' }}>
+        <div className="windows-window">
+          <div style={{ padding: '12px', background: '#c0c0c0', textAlign: 'center' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>💪</div>
+            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#000080', marginBottom: '2px' }}>
+              {monthlyWorkouts.length}
+            </div>
+            <div style={{ fontSize: '10px', color: '#000000' }}>Workouts</div>
           </div>
-          <div className="text-xs md:text-sm text-gray-600">Workouts</div>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-4 text-center">
-          <div className="text-3xl mb-2">🔥</div>
-          <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent mb-1">
-            {monthlyVolume.toLocaleString()}
+        <div className="windows-window">
+          <div style={{ padding: '12px', background: '#c0c0c0', textAlign: 'center' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>🔥</div>
+            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ff0000', marginBottom: '2px' }}>
+              {monthlyVolume.toLocaleString()}
+            </div>
+            <div style={{ fontSize: '10px', color: '#000000' }}>Total Volume</div>
           </div>
-          <div className="text-xs md:text-sm text-gray-600">Total Volume</div>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-4 text-center">
-          <div className="text-3xl mb-2">📊</div>
-          <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-500 to-purple-600 bg-clip-text text-transparent mb-1">
-            {monthlyWorkouts.length > 0 ? (monthlyVolume / monthlyWorkouts.length).toFixed(0) : 0}
+        <div className="windows-window">
+          <div style={{ padding: '12px', background: '#c0c0c0', textAlign: 'center' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>📊</div>
+            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#800080', marginBottom: '2px' }}>
+              {monthlyWorkouts.length > 0 ? (monthlyVolume / monthlyWorkouts.length).toFixed(0) : 0}
+            </div>
+            <div style={{ fontSize: '10px', color: '#000000' }}>Avg Volume</div>
           </div>
-          <div className="text-xs md:text-sm text-gray-600">Avg Volume</div>
         </div>
       </div>
 
       {/* Charts */}
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '8px' }}>
         {/* Workout Type Distribution */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Workout Type Distribution</h3>
-          {pieData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[250px] flex items-center justify-center text-gray-400">
-              No data for this month
-            </div>
-          )}
+        <div className="windows-window">
+          <div className="windows-titlebar">
+            <span>Workout Type Distribution</span>
+          </div>
+          <div style={{ padding: '12px', background: '#c0c0c0' }}>
+            {pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={60}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#808080', fontSize: '11px' }}>
+                No data for this month
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Weekly Workouts */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Workouts Per Week</h3>
-          {weeklyData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="workouts" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[250px] flex items-center justify-center text-gray-400">
-              No data for this month
-            </div>
-          )}
+        <div className="windows-window">
+          <div className="windows-titlebar">
+            <span>Workouts Per Week</span>
+          </div>
+          <div style={{ padding: '12px', background: '#c0c0c0' }}>
+            {weeklyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={weeklyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#808080" />
+                  <XAxis dataKey="week" stroke="#000000" style={{ fontSize: '10px' }} />
+                  <YAxis stroke="#000000" style={{ fontSize: '10px' }} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      background: '#c0c0c0', 
+                      border: '2px inset #c0c0c0',
+                      fontSize: '11px'
+                    }}
+                  />
+                  <Bar dataKey="workouts" fill="#000080" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#808080', fontSize: '11px' }}>
+                No data for this month
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Volume Progression Chart */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-6 mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Volume Progression (Last 12 Workouts)</h3>
-        {volumeProgression.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={volumeProgression}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" angle={-45} textAnchor="end" height={80} />
-              <YAxis />
-              <Tooltip 
-                formatter={(value) => [`${value.toLocaleString()} kg/lbs`, 'Volume']}
-                labelFormatter={(label) => `Date: ${label}`}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="volume" 
-                stroke="#3b82f6" 
-                strokeWidth={3} 
-                name="Total Volume"
-                dot={{ fill: '#3b82f6', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="h-[300px] flex items-center justify-center text-gray-400">
-            Add workouts to see your progression
-          </div>
-        )}
+      <div className="windows-window" style={{ marginBottom: '8px' }}>
+        <div className="windows-titlebar">
+          <span>Volume Progression (Last 12 Workouts)</span>
+        </div>
+        <div style={{ padding: '12px', background: '#c0c0c0' }}>
+          {volumeProgression.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={volumeProgression}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#808080" />
+                <XAxis dataKey="date" angle={-45} textAnchor="end" height={60} stroke="#000000" style={{ fontSize: '9px' }} />
+                <YAxis stroke="#000000" style={{ fontSize: '10px' }} />
+                <Tooltip 
+                  formatter={(value) => [`${value.toLocaleString()} kg/lbs`, 'Volume']}
+                  labelFormatter={(label) => `Date: ${label}`}
+                  contentStyle={{ 
+                    background: '#c0c0c0', 
+                    border: '2px inset #c0c0c0',
+                    fontSize: '11px'
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                <Line 
+                  type="monotone" 
+                  dataKey="volume" 
+                  stroke="#000080" 
+                  strokeWidth={2} 
+                  name="Total Volume"
+                  dot={{ fill: '#000080', r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ height: '250px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#808080', fontSize: '11px' }}>
+              Add workouts to see your progression
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Personal Records */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100/50 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">🏆 Personal Records This Month</h3>
-        {personalRecords.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-            {personalRecords.map((pr, index) => (
-              <div 
-                key={index}
-                className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
-              >
-                <div className="font-semibold text-gray-900 mb-2">{pr.name}</div>
-                {pr.maxWeight > 0 && (
-                  <div className="mb-2">
-                    <div className="text-xs text-gray-600 mb-1">Max Weight</div>
-                    <div className="text-lg font-bold text-blue-600">
-                      {pr.maxWeight} {pr.unit === 'Body Weight' ? 'BW' : pr.unit}
+      <div className="windows-window">
+        <div className="windows-titlebar">
+          <span>🏆 Personal Records This Month</span>
+        </div>
+        <div style={{ padding: '8px', background: '#c0c0c0' }}>
+          {personalRecords.length > 0 ? (
+            <div className="windows-window-inset" style={{ maxHeight: '300px', overflowY: 'auto', padding: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '4px' }}>
+                {personalRecords.map((pr, index) => (
+                  <div 
+                    key={index}
+                    className="windows-window"
+                    style={{ padding: '6px', background: '#ffffff' }}
+                  >
+                    <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#000000', marginBottom: '4px' }}>
+                      {pr.name}
                     </div>
-                    {pr.bestWeightDate && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {new Date(pr.bestWeightDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {pr.maxWeight > 0 && (
+                      <div style={{ marginBottom: '4px' }}>
+                        <div style={{ fontSize: '9px', color: '#000000', marginBottom: '1px' }}>Max Weight</div>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>
+                          {pr.maxWeight} {pr.unit === 'Body Weight' ? 'BW' : pr.unit}
+                        </div>
+                        {pr.bestWeightDate && (
+                          <div style={{ fontSize: '8px', color: '#808080', marginTop: '1px' }}>
+                            {new Date(pr.bestWeightDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {pr.maxVolume > 0 && (
+                      <div>
+                        <div style={{ fontSize: '9px', color: '#000000', marginBottom: '1px' }}>Best Volume</div>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#800080' }}>
+                          {pr.maxVolume.toLocaleString()} {pr.unit === 'Body Weight' ? 'BW' : pr.unit}
+                        </div>
+                        {pr.bestVolumeDate && (
+                          <div style={{ fontSize: '8px', color: '#808080', marginTop: '1px' }}>
+                            {new Date(pr.bestVolumeDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-                {pr.maxVolume > 0 && (
-                  <div>
-                    <div className="text-xs text-gray-600 mb-1">Best Volume</div>
-                    <div className="text-lg font-bold text-purple-600">
-                      {pr.maxVolume.toLocaleString()} {pr.unit === 'Body Weight' ? 'BW' : pr.unit}
-                    </div>
-                    {pr.bestVolumeDate && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {new Date(pr.bestVolumeDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </div>
-                    )}
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="h-32 flex items-center justify-center text-gray-400">
-            Complete workouts to see your personal records
-          </div>
-        )}
+            </div>
+          ) : (
+            <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#808080', fontSize: '11px' }}>
+              Complete workouts to see your personal records
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
