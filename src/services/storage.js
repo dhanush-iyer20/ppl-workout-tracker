@@ -32,12 +32,19 @@ export const storageService = {
       }
 
       // Get all workouts (no user filtering for multi-device sync)
+      // Add timeout to prevent hanging
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+      
       const response = await fetch(`${API_URL}/workouts`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
       })
+      
+      clearTimeout(timeoutId)
       
       if (!response.ok) {
         throw new Error(`Failed to fetch workouts: ${response.status}`)
@@ -61,6 +68,12 @@ export const storageService = {
       return sortedWorkouts
     } catch (error) {
       console.error('Error fetching workouts:', error)
+      
+      // Handle abort/timeout specifically
+      if (error.name === 'AbortError') {
+        console.warn('⚠️ Request timed out')
+      }
+      
       // Return cached data if available, even if expired, as fallback
       if (workoutsCache && Array.isArray(workoutsCache)) {
         console.log('⚠️ Server error, using cached data as fallback')
