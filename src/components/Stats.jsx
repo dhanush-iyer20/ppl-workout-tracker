@@ -321,7 +321,7 @@ function Stats({ workouts }) {
         <div style={{ padding: '8px', background: '#c0c0c0' }}>
           {personalRecords.length > 0 ? (
             <div className="windows-window-inset" style={{ maxHeight: '300px', overflowY: 'auto', padding: '8px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }} className="sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="personal-records-grid">
                 {personalRecords.map((pr, index) => (
                   <div 
                     key={index}

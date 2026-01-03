@@ -245,20 +245,26 @@ body {
 }
 
 /* Responsive grid for personal records */
+.personal-records-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
 @media (min-width: 640px) {
-  .sm\:grid-cols-2 {
+  .personal-records-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 768px) {
-  .md\:grid-cols-3 {
+  .personal-records-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (min-width: 1024px) {
-  .lg\:grid-cols-4 {
+  .personal-records-grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
