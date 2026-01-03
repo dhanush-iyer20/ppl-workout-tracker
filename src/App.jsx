@@ -38,6 +38,14 @@ function App() {
       setEditingWorkout(null)
     }
     setSelectedDate(date)
+    
+    // Scroll to workout form on mobile after a short delay to allow render
+    setTimeout(() => {
+      const workoutSession = document.querySelector('.workout-session-container')
+      if (workoutSession) {
+        workoutSession.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 100)
   }
 
   const handleSaveWorkout = async (workout, workoutId) => {
@@ -119,7 +127,7 @@ function App() {
 
             <Stats workouts={workouts} />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '8px' }}>
+            <div className="calendar-workout-grid" style={{ marginBottom: '8px' }}>
               <Calendar 
                 onDateSelect={handleDateSelect} 
                 workouts={workouts}

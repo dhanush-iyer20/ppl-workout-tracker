@@ -144,7 +144,7 @@ function WorkoutSession({ selectedDate, onSave, onCancel, existingWorkout }) {
   const colors = typeColors[workoutType]
   
   return (
-    <div className="windows-window">
+    <div className="windows-window workout-session-container">
       <div className="windows-titlebar">
         <span>{workoutType.toUpperCase()} Workout</span>
         <button

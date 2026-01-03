@@ -204,3 +204,16 @@ body {
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
 }
+
+/* Responsive grid for calendar and workout session */
+.calendar-workout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .calendar-workout-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
