@@ -137,7 +137,7 @@ function WorkoutSession({ selectedDate, onSave, onCancel, existingWorkout }) {
   
   const workoutExercises = exercises[workoutType]
   const typeColors = {
-    push: { bg: '#ffcccc', border: '#ff0000', text: '#000000' },
+    push: { bg: '#ffe6cc', border: '#ff8800', text: '#000000' },
     pull: { bg: '#ccccff', border: '#0000ff', text: '#000000' },
     legs: { bg: '#ccffcc', border: '#00ff00', text: '#000000' }
   }

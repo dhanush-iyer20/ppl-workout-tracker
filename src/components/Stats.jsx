@@ -120,7 +120,7 @@ function Stats({ workouts }) {
 
   // Pie chart data for workout types
   const pieData = [
-    { name: 'Push', value: workoutsByType.push || 0, color: '#ff0000' },
+    { name: 'Push', value: workoutsByType.push || 0, color: '#ff8800' },
     { name: 'Pull', value: workoutsByType.pull || 0, color: '#0000ff' },
     { name: 'Legs', value: workoutsByType.legs || 0, color: '#00ff00' }
   ].filter(item => item.value > 0)
@@ -132,7 +132,7 @@ function Stats({ workouts }) {
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i)
 
-  const COLORS = ['#ff0000', '#0000ff', '#00ff00']
+  const COLORS = ['#ff8800', '#0000ff', '#00ff00']
 
   return (
     <div style={{ marginBottom: '8px' }}>
@@ -188,7 +188,7 @@ function Stats({ workouts }) {
         <div className="windows-window">
           <div style={{ padding: '12px', background: '#c0c0c0', textAlign: 'center' }}>
             <div style={{ fontSize: '24px', marginBottom: '4px' }}>🔥</div>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ff0000', marginBottom: '2px' }}>
+            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ff8800', marginBottom: '2px' }}>
               {monthlyVolume.toLocaleString()}
             </div>
             <div style={{ fontSize: '10px', color: '#000000' }}>Total Volume</div>

@@ -26,7 +26,7 @@ function Calendar({ onDateSelect, workouts }) {
   
   const getWorkoutTypeColor = (type) => {
     const colors = {
-      push: '#ff0000',
+      push: '#ff8800',
       pull: '#0000ff',
       legs: '#00ff00'
     }
@@ -179,7 +179,7 @@ function Calendar({ onDateSelect, workouts }) {
         
         <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{ width: '12px', height: '12px', backgroundColor: '#ff0000', border: '1px solid #000000' }}></div>
+            <div style={{ width: '12px', height: '12px', backgroundColor: '#ff8800', border: '1px solid #000000' }}></div>
             <span style={{ color: '#000000' }}>Push</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
