@@ -175,7 +175,7 @@ function Stats({ workouts }) {
       </div>
 
       {/* Monthly Stats Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '8px' }}>
+      <div className="stats-cards-grid" style={{ marginBottom: '8px' }}>
         <div className="windows-window">
           <div style={{ padding: '12px', background: '#c0c0c0', textAlign: 'center' }}>
             <div style={{ fontSize: '24px', marginBottom: '4px' }}>💪</div>
@@ -206,7 +206,7 @@ function Stats({ workouts }) {
       </div>
 
       {/* Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '8px' }}>
+      <div className="stats-charts-grid" style={{ marginBottom: '8px' }}>
         {/* Workout Type Distribution */}
         <div className="windows-window">
           <div className="windows-titlebar">
@@ -321,7 +321,7 @@ function Stats({ workouts }) {
         <div style={{ padding: '8px', background: '#c0c0c0' }}>
           {personalRecords.length > 0 ? (
             <div className="windows-window-inset" style={{ maxHeight: '300px', overflowY: 'auto', padding: '8px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '4px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }} className="sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {personalRecords.map((pr, index) => (
                   <div 
                     key={index}

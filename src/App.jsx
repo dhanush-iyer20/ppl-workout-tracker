@@ -125,8 +125,6 @@ function App() {
               <p style={{ color: '#000000', fontSize: '11px' }}>Push • Pull • Legs Routine</p>
             </div>
 
-            <Stats workouts={workouts} />
-
             <div className="calendar-workout-grid" style={{ marginBottom: '8px' }}>
               <Calendar 
                 onDateSelect={handleDateSelect} 
@@ -148,6 +146,8 @@ function App() {
               onEdit={handleEditWorkout}
               onDelete={handleDeleteWorkout}
             />
+
+            <Stats workouts={workouts} />
           </div>
         </div>
       </div>
