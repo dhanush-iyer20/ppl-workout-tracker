@@ -33,24 +33,42 @@ export const storageService = {
 
       // Get all workouts (no user filtering for multi-device sync)
       // Add timeout to prevent hanging
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+      let controller
+      let timeoutId
       
-      const response = await fetch(`${API_URL}/workouts`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: controller.signal,
-      })
+      try {
+        // Check if AbortController is available
+        if (typeof AbortController !== 'undefined') {
+          controller = new AbortController()
+          timeoutId = setTimeout(() => {
+            if (controller) {
+              controller.abort()
+            }
+          }, 10000) // 10 second timeout
+        }
+        
+        const fetchOptions = {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+        
+        if (controller) {
+          fetchOptions.signal = controller.signal
+        }
+        
+        const response = await fetch(`${API_URL}/workouts`, fetchOptions)
+        
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
       
-      clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch workouts: ${response.status}`)
-      }
-      
-      const allWorkouts = await response.json()
+        if (!response.ok) {
+          throw new Error(`Failed to fetch workouts: ${response.status}`)
+        }
+        
+        const allWorkouts = await response.json()
       
       // Ensure we have an array
       if (!Array.isArray(allWorkouts)) {
@@ -58,14 +76,26 @@ export const storageService = {
         return []
       }
       
-      // Sort by date (newest first)
-      const sortedWorkouts = allWorkouts.sort((a, b) => new Date(b.date) - new Date(a.date))
-      
-      // Update cache
-      workoutsCache = sortedWorkouts
-      cacheTimestamp = Date.now()
-      
-      return sortedWorkouts
+        // Ensure we have an array
+        if (!Array.isArray(allWorkouts)) {
+          console.warn('API returned non-array data, using empty array')
+          return []
+        }
+        
+        // Sort by date (newest first)
+        const sortedWorkouts = allWorkouts.sort((a, b) => new Date(b.date) - new Date(a.date))
+        
+        // Update cache
+        workoutsCache = sortedWorkouts
+        cacheTimestamp = Date.now()
+        
+        return sortedWorkouts
+      } finally {
+        // Always clear timeout
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
+      }
     } catch (error) {
       console.error('Error fetching workouts:', error)
       
