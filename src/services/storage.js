@@ -14,17 +14,14 @@ const getUserId = () => {
 export const storageService = {
   async getWorkouts() {
     try {
-      const userId = getUserId()
-      const response = await fetch(`${API_URL}/workouts/${userId}`)
+      // Get all workouts (no user filtering for multi-device sync)
+      const response = await fetch(`${API_URL}/workouts`)
       if (!response.ok) {
-        // If user-specific endpoint doesn't work, try general endpoint
-        const generalResponse = await fetch(`${API_URL}/workouts`)
-        if (!generalResponse.ok) throw new Error('Failed to fetch workouts')
-        const allWorkouts = await generalResponse.json()
-        // Filter by user_id
-        return allWorkouts.filter(w => w.user_id === userId)
+        throw new Error('Failed to fetch workouts')
       }
-      return await response.json()
+      const allWorkouts = await response.json()
+      // Sort by date (newest first)
+      return allWorkouts.sort((a, b) => new Date(b.date) - new Date(a.date))
     } catch (error) {
       console.error('Error fetching workouts:', error)
       // Fallback to empty array if server is down
@@ -34,10 +31,10 @@ export const storageService = {
 
   async saveWorkout(workout) {
     try {
-      const userId = getUserId()
+      // Save workout without user_id filtering (for multi-device sync)
       const payload = {
         ...workout,
-        user_id: userId
+        user_id: 'shared' // Use shared user_id so all devices see the same data
       }
       
       console.log('Saving workout to:', `${API_URL}/workouts`)
